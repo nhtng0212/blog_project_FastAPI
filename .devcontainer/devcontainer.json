@@ -1,0 +1,11 @@
+{
+  "name": "Blog Project Container",
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/code",
+  "customizations": {
+    "vscode": {
+      "extensions": ["ms-python.python", "ms-python.vscode-pylint"]
+    }
+  }
+}

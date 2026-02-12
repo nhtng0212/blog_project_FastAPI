@@ -1,0 +1,7 @@
+from fastapi import APIRouter
+
+router = APIRouter()
+
+@router.get("/")
+def get_posts():
+    return [{"id": 1, "title": "First Post"}]
