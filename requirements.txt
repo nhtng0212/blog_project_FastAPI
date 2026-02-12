@@ -1,8 +1,14 @@
-fastapi[all]                # FastAPI 
-psycopg2-binary             # Driver để kết nối với PostgreSQL
-python-jose[cryptography]   # Xử lý JWT (JSON Web Token)
-passlib[bcrypt]             # Hash mật khẩu bảo mật
-python-multipart            # Hỗ trợ xử lý form/file upload
-pydantic-settings           # Quản lý file .env 
-pytest                      # Thư viện để viết unit test
-sqlalchemy                  # 
+fastapi[all]
+uvicorn[standard]
+sqlalchemy
+psycopg2-binary
+alembic
+python-jose[cryptography]
+passlib[bcrypt]
+python-multipart
+pydantic-settings
+pydantic[email]
+email-validator
+pytest
+boto3
+redis

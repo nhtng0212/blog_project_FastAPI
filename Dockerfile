@@ -12,16 +12,17 @@ ENV PYTHONUNBUFFERED 1
 RUN apt-get update && apt-get install -y \
     build-essential \
     libpq-dev \
+    gcc \
     && rm -rf /var/lib/apt/lists/*
 
 # Sao chép requirements và cài đặt thư viện
-COPY requirements.txt .
-
 RUN pip install --no-cache-dir --upgrade pip
+
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Sao chép toàn bộ mã nguồn vào container
 COPY . .
 
-# Lệnh để chạy ứng dụng (Uvicorn)
+# Lệnh để chạy ứng dụng 
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

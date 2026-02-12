@@ -12,4 +12,7 @@ venv/
 # Docker logs
 *.log
 
+# LocalStack
+localstack/
+
 Dev Container
