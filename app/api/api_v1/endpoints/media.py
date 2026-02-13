@@ -3,6 +3,7 @@ from app.api import deps
 
 # from app.core.aws import upload_file_to_s3
 from app.core.config import settings
+from app.core.aws import generate_presigned_url
 import uuid
 
 router = APIRouter()
@@ -16,7 +17,6 @@ async def get_presigned_url(
     Trả về link để Client tự upload lên S3
     """
     object_name = f"content/{uuid.uuid4()}_{file_name}"
-
     # Tạo URL từ aws.py
     url = get_presigned_url(object_name, content_type=file_type)
 

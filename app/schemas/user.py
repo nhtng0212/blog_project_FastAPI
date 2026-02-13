@@ -11,10 +11,6 @@ class UserBase(BaseModel):
     full_name: Optional[str] = None
     avatar_url: Optional[str] = None
     bio: Optional[str] = None
-    is_active: Optional[bool] = True
-    role: Optional[UserRole] = UserRole.USER
-
-    model_config = ConfigDict(from_attributes=True) 
 
 # Schema rút gọn
 class UserShort(BaseModel):
@@ -30,7 +26,6 @@ class UserCreate(UserBase):
 
 # Schema Cập nhật thông tin
 class UserUpdate(UserBase):
-    email: Optional[EmailStr] = None
     full_name: Optional[str] = None
     password: Optional[str] = None
     avatar_url: Optional[str] = None

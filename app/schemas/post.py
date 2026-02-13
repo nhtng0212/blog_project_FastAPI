@@ -3,11 +3,13 @@ from typing import Optional, List
 from uuid import UUID
 from datetime import datetime
 from app.schemas.user import UserShort
+from app.models.blog import PostStatus
 
 #
 class PostBase(BaseModel):
     title: str
     content: str
+    tags: List[str] = []
     image_url: Optional[str] = None
     video_url: Optional[str] = None
     
@@ -19,12 +21,17 @@ class PostCreate(PostBase):
 class PostUpdate(PostBase):
     title: Optional[str] = None
     content: Optional[str] = None
+    tags: Optional[List[str]] = None
+    status: Optional[PostStatus] = None 
+    image_url: Optional[str] = None
+    video_url: Optional[str] = None
     
 # Trả về cho Client
 class PostOut(PostBase):
     id: UUID
     author_id: UUID
     author: UserShort
+    status: PostStatus 
     created_at: datetime
     updated_at: Optional[datetime] = None
     

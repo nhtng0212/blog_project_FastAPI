@@ -7,7 +7,7 @@ import boto3
 engine = create_engine(settings.DATABASE_URL)
 
 # Mỗi request, tạo 1 session
-SessionLocal = sessionmaker(autocomit=False, autoflush=False, bind=engine)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def get_db():
     db = SessionLocal()
