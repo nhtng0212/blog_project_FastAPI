@@ -77,7 +77,7 @@ def refresh_token(refresh_token: str, db: Session = Depends(get_db)) -> Any:
     except jwt.JWTError:
         raise HTTPException(status_code=403, detail="Refresh token expired on invalid")
     
-    user = db.query(User).filter(User.id == user.id).first()
+    user = db.query(User).filter(User.id == user_id).first()
     if not user or not user.is_active:
         raise HTTPException(status_code=404, detail="User not found or inactive")
     

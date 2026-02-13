@@ -4,7 +4,7 @@ from app.api import deps
 from app.db.session import get_db
 from app.schemas.user import UserOut, UserUpdate
 from app.models.blog import User
-from app.services import user_service
+from app.services.user_service import user_service
 
 router = APIRouter()
 

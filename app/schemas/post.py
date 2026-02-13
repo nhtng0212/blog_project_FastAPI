@@ -5,19 +5,21 @@ from datetime import datetime
 from app.schemas.user import UserShort
 from app.models.blog import PostStatus
 
-#
+# Schema trả về cho từng Tag
+class TagOut(BaseModel):
+    id: UUID
+    name: str
+    model_config = ConfigDict(from_attributes=True)
+
 class PostBase(BaseModel):
     title: str
     content: str
-    tags: List[str] = []
     image_url: Optional[str] = None
     video_url: Optional[str] = None
-    
-# Tạo bài viết
-class PostCreate(PostBase):
-    pass
 
-# Cập nhật bài viết
+class PostCreate(PostBase):
+    tags: List[str] = [] 
+
 class PostUpdate(PostBase):
     title: Optional[str] = None
     content: Optional[str] = None
@@ -25,15 +27,20 @@ class PostUpdate(PostBase):
     status: Optional[PostStatus] = None 
     image_url: Optional[str] = None
     video_url: Optional[str] = None
-    
-# Trả về cho Client
-class PostOut(PostBase):
+
+# Schema trả về cho Client
+class PostOut(BaseModel):
     id: UUID
+    title: str
+    content: str
+    image_url: Optional[str] = None
+    video_url: Optional[str] = None
     author_id: UUID
     author: UserShort
     status: PostStatus 
     created_at: datetime
     updated_at: Optional[datetime] = None
     
-    # Cho phép Pydantic đọc dữ liệu từ SQLAIchemy Model
+    tags: List[TagOut] = [] 
+    
     model_config = ConfigDict(from_attributes=True)

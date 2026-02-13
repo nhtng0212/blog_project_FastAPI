@@ -4,13 +4,32 @@ from app.models.blog import Post, PostStatus
 from app.schemas.post import PostCreate, PostOut
 from app.core.redis import get_cache, set_cache
 from uuid import UUID
+from app.models.blog import Tag
 
 class PostSerivce:
     @staticmethod
     def create(db: Session, obj_in: PostCreate, author_id: UUID):
+        # Lấy danh sách tag
+        tag_names = obj_in.tags if obj_in.tags else []
+        db_tags = []
+        
+        # Chuyển tags thành Object Tag
+        for name in tag_names:
+            name = name.lower().strip()
+            tag_obj = db.query(Tag).filter(Tag.name == name).first()
+            if not tag_obj:
+                tag_obj = Tag(name=name)
+                db.add(tag_obj)
+            db_tags.append(tag_obj)
+            
+        # Tạo Post
+        post_data = obj_in.model_dump()
+        post_data.pop("tags") 
+        
         db_obj = Post(
-            **obj_in.model.dump(),
-            author_id=author_id
+            **post_data,
+            author_id=author_id,
+            tags=db_tags 
         )
         db.add(db_obj)
         db.commit()

@@ -13,7 +13,7 @@ s3_client = boto3.client(
 )
 
 
-def generate_presigned_url(object_name, expiration=3600):
+def generate_presigned_url(object_name,file_type, expiration=3600):
     """Tạo link để Client tự upload file lên S3"""
     try:
         response = s3_client.generate_presigned_url(
@@ -21,7 +21,7 @@ def generate_presigned_url(object_name, expiration=3600):
             Params={
                 "Bucket": settings.AWS_S3_BUCKET_NAME,
                 "Key": object_name,
-                "ContentType": "application/octet-stream",
+                "ContentType": file_type,
             },
             ExpiresIn=expiration,
         )

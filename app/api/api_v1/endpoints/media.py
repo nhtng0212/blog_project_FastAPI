@@ -18,7 +18,7 @@ async def get_presigned_url(
     """
     object_name = f"content/{uuid.uuid4()}_{file_name}"
     # Tạo URL từ aws.py
-    url = get_presigned_url(object_name, content_type=file_type)
+    url = generate_presigned_url(object_name, file_type)
 
     if not url:
         raise HTTPException(status_code=500, detail="Could not generate URL")

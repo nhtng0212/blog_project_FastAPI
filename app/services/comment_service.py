@@ -22,9 +22,8 @@ class CommentService:
     
     @staticmethod
     def get_by_post_with_paging(db: Session, post_id: UUID, page:int= 1, size: int = 10):
-        if page < 1: page = 1
-        if size > 100: size = 100
-        skip = (page - 1) * size
+        """Lấy danh sách bình luận của một bài viết có phân trang"""
+        skip = (max(page, 1) - 1) * size
         limit = size
         
         cache_key = f"comments:post:{post_id}:p:{skip // limit}"

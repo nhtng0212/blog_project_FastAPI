@@ -5,7 +5,7 @@ from app.db.session import get_db
 from app.schemas.comment import CommentOut, CommentCreate
 from app.models.blog import Comment, Post
 from app.schemas.utils import Page
-from app.services import comment_service
+from app.services.comment_service import comment_service
 from uuid import UUID
 
 router = APIRouter()
@@ -25,25 +25,17 @@ def create_comment(
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
 
-    db_obj = Comment(
-        content=comment_in.content,
-        post_id=comment_in.post_id,
-        author_id=current_user.id,
-        image_url=comment_in.imgae_url,
-        video_url=comment_in.video_url,
-    )
-    db.add(db_obj)
-    db.commit()
-    db.refresh(db_obj)
-    return db_obj
+    return comment_service.create(db, obj_in=comment_in, author_id=current_user.id)
 
 
-@router.get("/{post_id}/comments", response_model=Page[CommentOut])
+@router.get("/post/{post_id}", response_model=Page[CommentOut]) 
 def get_post_comments(
-    post_id: UUID, page: int = 1, size: int = 10, db: Session = Depends(get_db)
+    post_id: UUID, 
+    page: int = 1, 
+    size: int = 10, 
+    db: Session = Depends(get_db)
 ):
-    skip = (page - 1) * size
     items, total = comment_service.get_by_post_with_paging(
-        db, post_id=post_id, skip=skip, limit=size
+        db, post_id=post_id, page=page, size=size
     )
     return {"items": items, "total": total, "page": page, "size": size}
