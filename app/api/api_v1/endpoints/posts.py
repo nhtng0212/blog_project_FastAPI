@@ -7,6 +7,9 @@ from app.schemas.post import PostOut, PostCreate
 from app.services.post_service import post_service
 from app.core.redis import redis_client
 from app.schemas.utils import Page
+import json
+from app.core.config import settings
+from fastapi.encoders import jsonable_encoder
 
 router = APIRouter()
 
@@ -30,14 +33,30 @@ def create_post(
 @router.get("/", response_model=Page[PostOut])
 def list_posts(db: Session = Depends(get_db), page: int = 1, size: int = 10):
     """Lấy danh sách bài viết"""
-    items, total = post_service.get_multi_with_total(db, page=page, size=size)
+    cache_key = f"post_list_p{page}_s{size}"
     
-    return {
+    # Lấy thử từ Redis trước
+    cached_data = redis_client.get(cache_key)
+    if cache_key:
+        return json.loads(cached_data)
+    
+    # Không có từ Redis, query
+    items, total = post_service.get_multi_with_total(db, page=page, size=size)
+    result = {
         "items": items,
         "total": total,
         "page": page,
         "size": size
     }
+    
+    # Lưu vào Redis
+    redis_client.setex(
+        cache_key,
+        settings.POST_EXPIRE_HOURS,
+        json.dumps(jsonable_encoder(result))
+    )
+    
+    return result
 
 @router.get("/tag/{tag_name}", response_model=Page[PostOut])
 def list_posts_by_tag(
@@ -46,7 +65,20 @@ def list_posts_by_tag(
     page: int = 1,
     size: int = 10
 ):
+    cache_key = f"post_list_tag_{tag_name}_p{page}_s{size}"
+    
+    cached_data = redis_client.get(cache_key)
+    # Lấy từ Redis nếu có
+    if cache_key:
+        return json.loads(cached_data)
+    
+    # Nếu không có từ Redis thì query
     items, total = post_service.get_multi_with_total(
         db, tag_name=tag_name, page=page, size=size
     )
-    return {"items": items, "total": total, "page": page, "size": size}
+    result = {"items": items, "total": total, "page": page, "size": size}
+    
+    # Lưu lại cho lần sau
+    redis_client.setex(cache_key, 3600, json.dumps(jsonable_encoder(result)))
+    
+    return result

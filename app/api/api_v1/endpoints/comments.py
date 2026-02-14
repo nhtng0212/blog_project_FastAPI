@@ -7,6 +7,10 @@ from app.models.blog import Comment, Post, PostStatus
 from app.schemas.utils import Page
 from app.services.comment_service import comment_service
 from uuid import UUID
+import json
+from fastapi.encoders import jsonable_encoder
+from app.core.config import settings
+from app.core.redis import redis_client
 
 router = APIRouter()
 
@@ -22,13 +26,23 @@ def create_comment(
     # Kiểm tra bài viết tồn tại
     post = db.query(Post).filter(Post.id == comment_in.post_id).first()
     
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+    
     if post.status != PostStatus.APPROVED:
         raise HTTPException(status_code=404, detail="Post not found")
 
-    if not post:
-        raise HTTPException(status_code=404, detail="Post not found")
+   
 
-    return comment_service.create(db, obj_in=comment_in, author_id=current_user.id)
+    # Tạo comment
+    new_comment = comment_service.create(db, obj_in=comment_in, author_id=current_user.id)
+
+    # Tìm tất cả key liên quan đến comment của post_id này và xóa
+    keys = redis_client.keys(f"comments_post_{comment_in.post_id}_*")
+    if keys:
+        redis_client.delete(*keys)
+
+    return new_comment
 
 
 @router.get("/post/{post_id}", response_model=Page[CommentOut]) 
@@ -38,7 +52,14 @@ def get_post_comments(
     size: int = 10, 
     db: Session = Depends(get_db)
 ):
-    # Kiểm tra bài viết tồn tại
+    cache_key = f"comments_post_{post_id}_p{page}_s{size}"
+    
+    # Thử lấy từ Redis
+    cached_data = redis_client.get(cache_key)
+    if cache_key:
+        return json.loads(cache_key)
+    
+    # Kiểm tra bài viết tồn tại 
     post = db.query(Post).filter(Post.id == post_id).first()
     
     if post.status != PostStatus.APPROVED:
@@ -50,5 +71,11 @@ def get_post_comments(
     items, total = comment_service.get_by_post_with_paging(
         db, post_id=post_id, page=page, size=size
     )
+    result = {"items": items, "total": total, "page": page, "size": size}
+    redis_client.setex(
+        cache_key, 
+        settings.COMMENT_EXPIRE_MINUTES, 
+        json.dumps(jsonable_encoder(result))
+    )
     
-    return {"items": items, "total": total, "page": page, "size": size}
+    return result

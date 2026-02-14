@@ -10,6 +10,7 @@ from app.schemas.post import PostOut
 from app.schemas.user import UserOut
 from app.schemas.utils import Page
 from app.services.post_service import post_service
+from app.core.redis import redis_client
 
 router = APIRouter(dependencies=[Depends(deps.get_current_admin)])
 
@@ -120,4 +121,8 @@ def ban_user(
         raise HTTPException(status_code=404, detail="User not found")
     user.is_active = False
     db.commit()
+    
+    # Xóa refresh token khỏi redis
+    redis_client.delete(f"refresh_token:{user_id}")
+    
     return {"detail": "User has been banned"}

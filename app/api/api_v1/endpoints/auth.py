@@ -10,12 +10,14 @@ from app.services.user_service import user_service
 from fastapi.security import OAuth2PasswordRequestForm
 from app.core.security import create_access_token, create_refresh_token
 from app.schemas.user import Token
-
+from app.api import deps
 from app.core.config import settings
 
 from jose import jwt, JWTError
 
 from app.models.blog import User
+
+from app.core.redis import redis_client
 
 router = APIRouter()
 
@@ -46,7 +48,7 @@ def login(
     form_data: OAuth2PasswordRequestForm = Depends()
 ) -> Any:
     """
-    Đăng nhập và lấy JWT Access Token.
+    Đăng nhập lấy JWT Access Token.
     * from_data.username là email
     """
     user = user_service.authenticate(
@@ -61,9 +63,18 @@ def login(
     elif not user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
     
+    
+    access_token = create_access_token(user.id)
+    refresh_token = create_refresh_token(user.id)
+    redis_client.setex(
+        f"refresh_token:{user.id}",
+        timedelta(days=settings.REFRSH_TOKEN_EXPIRE_DAYS),
+        refresh_token
+    )
+    
     return {
-        "access_token": create_access_token(user.id),
-        "refresh_token": create_refresh_token(user.id),
+        "access_token": access_token,
+        "refresh_token": refresh_token,
         "token_type": "bearer",
     }
     
@@ -77,13 +88,35 @@ def refresh_token(refresh_token: str, db: Session = Depends(get_db)) -> Any:
     except jwt.JWTError:
         raise HTTPException(status_code=403, detail="Refresh token expired on invalid")
     
+    # Kiểm tra Redis trước
+    stored_token = redis_client.get(f"refresh_token:{user_id}")
+    if not stored_token:
+        raise HTTPException(status_code=401, detail="Refresh token has expired or been revoked")
+
+    if stored_token.decode("utf-8") != refresh_token:
+        raise HTTPException(status_code=401, detail="Invalid refresh token")
+    
     user = db.query(User).filter(User.id == user_id).first()
     if not user or not user.is_active:
         raise HTTPException(status_code=404, detail="User not found or inactive")
     
+    # Tạo access token mới
+    new_access_token = create_access_token(user.id)
     return {
-        "access_token": create_access_token(user.id),
+        "access_token": new_access_token,
         "refresh_token": refresh_token,
         "token_type": "bearer",
     }
     
+@router.post("/logout")
+def logout(
+    current_user: User = Depends(deps.get_current_user),
+    db: Session = Depends(get_db)
+) -> Any:
+    """
+    Đăng xuất, xóa Refresh Token khỏi Redis
+    """
+    # Xóa token của user hiện tại trong Redis
+    redis_client.delete(f"refresh_token:{current_user.id}")
+    
+    return {"detail": "Successfully logged out"}

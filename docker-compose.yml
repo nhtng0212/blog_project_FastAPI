@@ -29,6 +29,7 @@ services:
       - SERVICES=s3
       - DEFAULT_REGION=ap-southeast-1
     volumes:
+      - "./localstack_init:/etc/localstack/init/ready.d"
       - "./localstack:/var/lib/localstack"
 
   pgadmin:

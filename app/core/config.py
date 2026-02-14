@@ -8,8 +8,16 @@ class Settings(BaseSettings):
     DATABASE_URL: str
     SECRET_KEY: str
     ALGORITHM: str = "HS256"
+    
+    # Auth (day)
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRSH_TOKEN_EXPIRE_DAYS: int = 7
+    
+    # Post (h)
+    POST_EXPIRE_HOURS: int = 1
+    
+    # Comment (h)
+    COMMENT_EXPIRE_MINUTES: int = 1
 
     # AWS
     AWS_ACCESS_KEY_ID: str = ""
