@@ -6,6 +6,7 @@ from app.db.session import get_db
 from app.schemas.post import PostOut, PostCreate
 from app.services.post_service import post_service
 from app.core.redis import redis_client
+from app.schemas.utils import Page
 
 router = APIRouter()
 
@@ -26,11 +27,10 @@ def create_post(
         
     return post
 
-@router.get("/", response_model=List[PostOut])
-def list_posts(db: Session = Depends(get_db),page: int = 1, size: int = 10):
+@router.get("/", response_model=Page[PostOut])
+def list_posts(db: Session = Depends(get_db), page: int = 1, size: int = 10):
     """Lấy danh sách bài viết"""
-    skip = (page - 1) * size
-    items, total = post_service.get_multi_with_total(db, skip=skip, limit=size)
+    items, total = post_service.get_multi_with_total(db, page=page, size=size)
     
     return {
         "items": items,
@@ -38,3 +38,15 @@ def list_posts(db: Session = Depends(get_db),page: int = 1, size: int = 10):
         "page": page,
         "size": size
     }
+
+@router.get("/tag/{tag_name}", response_model=Page[PostOut])
+def list_posts_by_tag(
+    tag_name: str,
+    db: Session = Depends(get_db),
+    page: int = 1,
+    size: int = 10
+):
+    items, total = post_service.get_multi_with_total(
+        db, tag_name=tag_name, page=page, size=size
+    )
+    return {"items": items, "total": total, "page": page, "size": size}

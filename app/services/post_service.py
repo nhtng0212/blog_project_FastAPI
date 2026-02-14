@@ -37,41 +37,44 @@ class PostSerivce:
         return db_obj
     
     @staticmethod
-    def get_multi_with_total(db:Session, page:int = 0, size:int = 10):
+    def get_multi_with_total(
+        db: Session, 
+        *, 
+        status: str = None, 
+        tag_name: str = None, 
+        page: int = 1, 
+        size: int = 10
+    ):
         if page < 1: page = 1
-        if size > 100: size = 100
         skip = (page - 1) * size
-        limit = size
         
-        # Lấy tổng số bài viết có trạng thái APPROVED
-        total = db.query(Post).filter(Post.status == PostStatus.APPROVED).count()
+        query = db.query(Post)
+        
+        # Lọc theo Status
+        if status:
+            target_status = status.lower().strip()
+            query = query.filter(Post.status == target_status)
+        else:
+            query = query.filter(Post.status == PostStatus.APPROVED)
+            
+        # Lọc theo Tag
+        if tag_name:
+            clean_tag = tag_name.lower().strip()
+            tag_exists = db.query(Tag).filter(Tag.name == clean_tag).first()
+            if not tag_exists:
+                return [], 0
+            query = query.join(Post.tags).filter(Tag.name == clean_tag)
+
+        total = query.count()
         
         # Lấy dữ liệu phân trang
-        items = db.query(Post).filter(Post.status == PostStatus.APPROVED).offset(skip).limit(limit).all()
+        items = query.order_by(Post.created_at.desc())\
+                    .offset(skip)\
+                    .limit(size)\
+                    .all()
         
         return items, total
     
-    @staticmethod
-    def get_multi(db: Session, page:int = 0, size:int = 10):
-        if page < 1: page = 1
-        if size > 100: size = 100
-        skip = (page - 1) * size
-        limit = size
-       
-        # Lấy Cache nếu có
-        cache_key = f"posts_list_{skip}_{limit}"
-        cached = get_cache(cache_key)
-        if cached:
-            return json.load(cached)
-        
-        # Lấy từ DB
-        posts = db.query(Post).offset(skip).limit(limit).all()
-        
-        # Lưu vào Cache
-        posts_data = [PostOut.model_validate(p).model_dump(mode="json") for p in posts]
-        set_cache(cache_key, json.dumps(posts_data), expire=60)
-        
-        return posts
     
 post_service = PostSerivce()
  

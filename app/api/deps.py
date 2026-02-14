@@ -16,16 +16,16 @@ reusable_oauth2 = OAuth2PasswordBearer(
     tokenUrl=f"{settings.PROJECT_NAME}/api/v1/auth/login"
 )
 
-    
 
 def get_current_user(
-    db: Session = Depends(get_db),
-    token: str = Depends(reusable_oauth2)
+    db: Session = Depends(get_db), token: str = Depends(reusable_oauth2)
 ) -> User:
     # Kiểm tra token trong BlackList
     if redis_client.get(f"blacklist:{token}"):
-        raise HTTPException(status_code=401, detail="Token has been revoked (Logged out)")
-    
+        raise HTTPException(
+            status_code=401, detail="Token has been revoked (Logged out)"
+        )
+
     try:
         payload = jwt.decode(
             token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
@@ -36,13 +36,16 @@ def get_current_user(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Could not validate credentials",
         )
-    
+
     user = db.query(User).filter(User.id == token_data.email).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
-def get_current_admin(current_user: User= Depends(get_current_user)):
+
+def get_current_admin(current_user: User = Depends(get_current_user)):
     if current_user.role != UserRole.ADMIN:
-        raise HTTPException(status_code=403, detail="The user doesn't have enough privileges")
+        raise HTTPException(
+            status_code=403, detail="The user doesn't have enough privileges"
+        )
     return current_user

@@ -6,7 +6,7 @@ from app.schemas.user import UserShort
 
 class CommentBase(BaseModel):
     content: str
-    imgae_url: Optional[str] = True
+    image_url: Optional[str] = True
     video_url: Optional[str] = True
     
 # Tạo comment

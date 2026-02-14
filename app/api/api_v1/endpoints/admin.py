@@ -8,31 +8,44 @@ from app.db.session import get_db
 from app.models.blog import Post, User, Comment, PostStatus
 from app.schemas.post import PostOut
 from app.schemas.user import UserOut
+from app.schemas.utils import Page
+from app.services.post_service import post_service
 
 router = APIRouter(dependencies=[Depends(deps.get_current_admin)])
 
+
 # Quản lý bài viết
-@router.patch("/posts/{post_id}/approve", response_model=PostOut)
-def approve_post(post_id: UUID, db: Session = Depends(get_db)):
-    """Duyệt bài viết để hiển thị công khai"""
+@router.patch("/posts/{post_id}/review")
+def review_post(
+    post_id: UUID,
+    new_status: PostStatus,
+    db: Session = Depends(get_db),
+    current_admin=Depends(deps.get_current_admin),
+):
     post = db.query(Post).filter(Post.id == post_id).first()
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
-    
-    post.status = PostStatus.APPROVED
+
+    post.status = new_status
     db.commit()
-    db.refresh(post)
-    
-    # Cache
-    from app.core.redis import redis_client
-    keys = redis_client.keys("posts_list_*")
-    if keys:
-        redis_client.delete(*keys)
-    
+
+    # Xóa cache nếu duyệt bài thành công
+    if new_status == PostStatus.APPROVED:
+        from app.core.redis import redis_client
+
+        keys = redis_client.keys("posts_list_*")
+        if keys:
+            redis_client.delete(*keys)
+
     return post
 
+
 @router.delete("/posts/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
-def admin_delete_post(post_id: UUID, db: Session = Depends(get_db)):
+def admin_delete_post(
+    post_id: UUID,
+    db: Session = Depends(get_db),
+    current_admin=Depends(deps.get_current_admin),
+):
     """Admin có quyền xóa bất kỳ bài viết nào vi phạm"""
     post = db.query(Post).filter(Post.id == post_id).first()
     if not post:
@@ -41,19 +54,66 @@ def admin_delete_post(post_id: UUID, db: Session = Depends(get_db)):
     db.commit()
     return None
 
-# Quản lý người dùng
-@router.get("/user", response_model=List[UserOut])
-def list_user_for_admin(db: Session = Depends(get_db), page: int = 1, size: int=10):
-    """Admin xem danh sách toàn bộ người dùng để quản lý"""
-    if page < 1: page = 1
-    if size > 100: size = 100
-    skip = (page - 1) * size
-    limit = size
+
+@router.get("/posts", response_model=Page[PostOut])
+def list_posts_for_admin(
+    db: Session = Depends(get_db),
+    status: PostStatus = None,
+    page: int = 1,
+    size: int = 10,
+    current_admin=Depends(deps.get_current_admin),
+):
+    items, total = post_service.get_multi_with_total(
+        db, status=status, page=page, size=size
+    )
     
-    return db.query(User).offset(skip).limit(limit).all()
+    return {"items": items, "total": total, "page": page, "size": size}
+
+
+# Quản lý người dùng
+@router.get("/users", response_model=Page[UserOut])
+def list_user_for_admin(
+    db: Session = Depends(get_db),
+    is_active: bool = None,
+    page: int = 1,
+    size: int = 10,
+    current_admin=Depends(deps.get_current_admin),
+):
+    """Admin xem danh sách, lọc người dùng theo trạng thái hoạt động"""
+    if page < 1:
+        page = 1
+    skip = (page - 1) * size
+
+    query = db.query(User)
+    if is_active is not None:
+        query = query.filter(User.is_active == is_active)
+
+    total = query.count()
+    users = query.offset(skip).limit(size).all()
+
+    return {"items": users, "total": total, "page": page, "size": size}
+
+
+@router.patch("/users/{user_id}")
+def unban_user(
+    user_id: UUID,
+    db: Session = Depends(get_db),
+    current_admin=Depends(deps.get_current_admin),
+):
+    """Admin gỡ tài khoản người dùng"""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    user.is_active = True
+    db.commit()
+    return {"detail": "User has been unbanned"}
 
 @router.delete("/users/{user_id}")
-def ban_user(user_id: UUID, db:Session = Depends(get_db)):
+def ban_user(
+    user_id: UUID,
+    db: Session = Depends(get_db),
+    current_admin=Depends(deps.get_current_admin),
+):
     """Admin có thể khóa tài khoản người dùng"""
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
