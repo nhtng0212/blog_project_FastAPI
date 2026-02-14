@@ -54,23 +54,24 @@ PowerShell
 # Dành cho Windows (PowerShell)
 docker exec -it blog_project-localstack-1 chmod +x /etc/localstack/init/ready.d/init_s3.sh
 docker exec -it blog_project-localstack-1 /etc/localstack/init/ready.d/init_s3.sh
-3. Truy cập tài liệu API
+
+# Truy cập tài liệu API
 Sau khi hệ thống khởi động thành công, bạn có thể truy cập tài liệu API tự động tại:
 
 Swagger UI: http://localhost:8000/docs
 
 ReDoc: http://localhost:8000/redoc
 
-4. Test
+# Test
 
 Link Postman: https://web.postman.co/workspace/My-Workspace~1f93a405-8e43-495b-8e4f-9a07860b2742/collection/45949186-d8eee671-a2c0-4d75-82e3-f2ae8d785dfd?action=share&source=copy-link&creator=45949186
 
-📝 Báo cáo kỹ thuật
+# Báo cáo kỹ thuật
 Hiệu năng: Triển khai cơ chế Cache Aside với Redis. Khi có bài viết mới hoặc bình luận mới, hệ thống tự động xóa cache (Invalidation) để đảm bảo tính nhất quán dữ liệu.
 
 Hạ tầng giả lập: Xử lý lỗi NoSuchBucket và lỗi phân quyền thực thi trên LocalStack bằng các script khởi tạo tự động.
 
-Các điểm Bonus đạt được:
+# Các điểm Bonus đạt được:
 [x] Sử dụng Docker & Docker Compose.
 
 [x] Phân quyền Admin/User (Authorization).
