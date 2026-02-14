@@ -37,9 +37,13 @@ Database: PostgreSQL (Lưu trữ dữ liệu quan hệ).
 Clone dự án:
 
 Bash
+
 git clone <https://github.com/nhtng0212/blog_project_FastAPI>
+
 cd blog_project
+
 Cấu hình biến môi trường:
+
 Tạo file .env tại thư mục gốc và cấu hình các thông số (có thể tham khảo file .env.example).
 
 Khởi động bằng Docker Compose:
