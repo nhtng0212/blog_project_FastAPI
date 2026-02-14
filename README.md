@@ -37,7 +37,7 @@ Database: PostgreSQL (Lưu trữ dữ liệu quan hệ).
 Clone dự án:
 
 Bash
-git clone <repository_url>
+git clone <https://github.com/nhtng0212/blog_project_FastAPI>
 cd blog_project
 Cấu hình biến môi trường:
 Tạo file .env tại thư mục gốc và cấu hình các thông số (có thể tham khảo file .env.example).
@@ -59,11 +59,10 @@ Sau khi hệ thống khởi động thành công, bạn có thể truy cập tà
 Swagger UI: http://localhost:8000/docs
 
 ReDoc: http://localhost:8000/redoc
+4. Test
+Link Postman: https://web.postman.co/workspace/My-Workspace~1f93a405-8e43-495b-8e4f-9a07860b2742/collection/45949186-d8eee671-a2c0-4d75-82e3-f2ae8d785dfd?action=share&source=copy-link&creator=45949186
 
-📝 Báo cáo kỹ thuật (Report)
-Các trở ngại và giải pháp:
-Bảo mật: Đã xử lý lỗi cho phép bình luận trên bài viết chưa phê duyệt (PENDING) bằng cách chặn trực tiếp tại tầng Service.
-
+📝 Báo cáo kỹ thuật
 Hiệu năng: Triển khai cơ chế Cache Aside với Redis. Khi có bài viết mới hoặc bình luận mới, hệ thống tự động xóa cache (Invalidation) để đảm bảo tính nhất quán dữ liệu.
 
 Hạ tầng giả lập: Xử lý lỗi NoSuchBucket và lỗi phân quyền thực thi trên LocalStack bằng các script khởi tạo tự động.
