@@ -1,4 +1,4 @@
-🚀 Tính năng chính
+# Tính năng chính
 Xác thực & Phân quyền:
 
 Đăng ký, Đăng nhập và Quản lý phiên bằng JWT (Access Token & Refresh Token).
@@ -26,7 +26,7 @@ Hạ tầng:
 Database: PostgreSQL (Lưu trữ dữ liệu quan hệ).
 
 
-💻 Hướng dẫn cài đặt và chạy Local
+# Hướng dẫn cài đặt và chạy Local
 1. Yêu cầu hệ thống
 Đã cài đặt Docker và Docker Compose.
 
@@ -60,7 +60,9 @@ Sau khi hệ thống khởi động thành công, bạn có thể truy cập tà
 Swagger UI: http://localhost:8000/docs
 
 ReDoc: http://localhost:8000/redoc
+
 4. Test
+
 Link Postman: https://web.postman.co/workspace/My-Workspace~1f93a405-8e43-495b-8e4f-9a07860b2742/collection/45949186-d8eee671-a2c0-4d75-82e3-f2ae8d785dfd?action=share&source=copy-link&creator=45949186
 
 📝 Báo cáo kỹ thuật
