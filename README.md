@@ -1,6 +1,3 @@
-Blog API System - Backend Assignment
-Dự án xây dựng hệ thống REST API cho mạng xã hội Blog, hỗ trợ đa nền tảng (Web/Mobile). Hệ thống được thiết kế với tư duy Clean Code, bảo mật JWT và tối ưu hóa hiệu năng bằng Redis Caching.
-
 🚀 Tính năng chính
 Xác thực & Phân quyền:
 
